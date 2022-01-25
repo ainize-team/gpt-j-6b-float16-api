@@ -9,7 +9,7 @@ RUN apt-get update && apt-get -y install python3 python3-dev python3-pip
 RUN alias pip=pip3
 RUN alias python=python3
 
-COPY ./requirements_gpu.txt ./requirements.txt
+COPY ./requirements.txt ./requirements.txt
 RUN pip install --upgrade -r ./requirements.txt
 
 COPY ./app /app
