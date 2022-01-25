@@ -1,0 +1,9 @@
+-f https://download.pytorch.org/whl/cu113/torch_stable.html
+fastapi==0.73.0
+loguru==0.5.3
+requests==2.27.1
+starlette==0.17.1
+tokenizers==0.10.3
+torch==1.10.1+cu113
+transformers==4.15.0
+uvicorn==0.17.0
