@@ -13,7 +13,8 @@ def _startup_model(app: FastAPI) -> None:
     task = TASK
     is_fp16 = IS_FP16
     revision = REVISION
-    logger.info(f"Revision {revision}")
+    logger.info(f"Model Name Or Path: {model_name_or_path}")
+    logger.info(f"Revision: {revision}")
     if task == Tasks.TEXT_GENERATION.value:
         model_instance = TextGenerationModel(model_name_or_path, revision, is_fp16)
     else:

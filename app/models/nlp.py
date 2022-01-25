@@ -2,6 +2,7 @@ import torch
 
 from transformers import AutoTokenizer
 from transformers import AutoModelForCausalLM
+from loguru import logger
 
 from models.payload import TextGenerationPredictPayload
 from models.prediction import TextGenerationResult
@@ -22,9 +23,10 @@ class TextGenerationModel:
 
     def predict(self, request: TextGenerationPredictPayload) -> TextGenerationResult:
         request_dict = request.dict()
-        inputs = self.tokenizer.encode(request.text, return_tensors='pt').to(device=self.device, non_blocking=True)
+        inputs = self.tokenizer.encode(request.text_inputs, return_tensors='pt').to(device=self.device, non_blocking=True)
+        logger.info(f"Input Text: {request.text_inputs}")
         request_dict["inputs"] = inputs
-        del request_dict["text"]
+        del request_dict["text_inputs"]
         gen_tokens = self.model.generate(**request_dict)
         generated_text = self.tokenizer.batch_decode(gen_tokens.tolist(), skip_special_tokens=True)
         return TextGenerationResult(generated_text=generated_text)
