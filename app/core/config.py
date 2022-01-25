@@ -1,7 +1,7 @@
 from starlette.config import Config
 
-APP_VERSION = "0.1.0-dev"
-APP_NAME = "Huggingface API"
+APP_VERSION = "1.0.0"
+APP_NAME = "GPT-J-6B Float16"
 API_PREFIX = "/api"
 TASK = "TEXT_GENERATION"
 
