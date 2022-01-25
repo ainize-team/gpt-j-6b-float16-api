@@ -12,7 +12,7 @@ RUN alias python=python3
 COPY ./requirements_gpu.txt ./requirements.txt
 RUN pip install --upgrade -r ./requirements.txt
 
-COPY ./huggingfaceAPI /app
+COPY ./app /app
 WORKDIR /app
 
 EXPOSE 8000
