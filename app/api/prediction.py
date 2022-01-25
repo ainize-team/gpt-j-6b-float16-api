@@ -1,15 +1,14 @@
 from fastapi import APIRouter
 from starlette.requests import Request
 
-from core.config import TASK
-from core.commons import Tasks
 from models.payload import TextGenerationPredictPayload
 from models.prediction import TextGenerationResult
 
 router = APIRouter()
 
 
-@router.post("/text-generation", name="text-generation")
+@router.post("/text-generation", name="text-generation", response_model=TextGenerationResult,
+             responses={413: {"description": "Error: Request Entity Too Large"}}, )
 def post_text_generation(
         request: Request,
         block_data: TextGenerationPredictPayload

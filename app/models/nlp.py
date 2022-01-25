@@ -1,5 +1,6 @@
 import torch
 
+from fastapi import HTTPException
 from transformers import AutoTokenizer
 from transformers import AutoModelForCausalLM
 from loguru import logger
@@ -20,12 +21,22 @@ class TextGenerationModel:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = self.model.to(self.device)
         self.model.eval()
+        self.model_max_length = 1024
+        if hasattr(self.model.config, "n_positions"):
+            self.model_max_length = self.model.config.n_positions
+        elif hasattr(self.model.config, "max_position_embeddings"):
+            self.model_max_length = self.model.config.max_position_embeddings
 
     def predict(self, request: TextGenerationPredictPayload) -> TextGenerationResult:
         request_dict = request.dict()
-        inputs = self.tokenizer.encode(request.text_inputs, return_tensors='pt').to(device=self.device, non_blocking=True)
-        logger.info(f"Input Text: {request.text_inputs}")
-        request_dict["inputs"] = inputs
+        if len(request.text_inputs) > self.model_max_length * 128:
+            logger.error(f"`text_inputs` length is {len(request.text_inputs)}")
+            raise HTTPException(status_code=413, detail="`text_inputs` is too long to generate")
+        inputs = self.tokenizer.encode(request.text_inputs, return_tensors='pt')
+        if inputs.shape[1] > self.model_max_length:
+            logger.error(f"encoded sequence length is {inputs.shape[1]}")
+            raise HTTPException(status_code=413, detail="`text_inputs` is too long to generate")
+        request_dict["inputs"] = inputs.to(device=self.device, non_blocking=True)
         del request_dict["text_inputs"]
         gen_tokens = self.model.generate(**request_dict)
         generated_text = self.tokenizer.batch_decode(gen_tokens.tolist(), skip_special_tokens=True)
