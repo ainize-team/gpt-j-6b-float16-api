@@ -22,7 +22,7 @@ class TextGenerationModel:
         if is_fp16:
             self.model = self.model.half()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.model = self.model.to(self.device)
         self.model.eval()
         self.model_max_length = 1024
@@ -41,23 +41,33 @@ class TextGenerationModel:
             logger.error(f"encoded sequence length is {inputs.shape[1]}")
             raise HTTPException(status_code=413, detail="`text_inputs` is too long to generate")
         try:
+            if request_dict["max_length"] and request_dict["max_length"] > self.model_max_length:
+                logger.warning(f"change max_length from {request_dict['max_length']} to {self.model_max_length}")
+                request_dict["max_length"] = self.model_max_length
+            if request_dict["min_length"] and request_dict["min_length"] > self.model_max_length:
+                logger.warning(f"change max_length from {request_dict['min_length']} to {self.model_max_length}")
+                request_dict["min_length"] = self.model_max_length
+            if request_dict["min_length"] and request_dict["max_length"] and request_dict["min_length"] > request_dict["max_length"]:
+                logger.warning(f"change min_length from {request_dict['min_length']} to {request_dict['max_length']}")
+                request_dict["min_length"] = request_dict['max_length']
             request_dict["inputs"] = inputs.to(device=self.device, non_blocking=True)
             del request_dict["text_inputs"]
-            gen_tokens = self.model.generate(**request_dict)
+            gen_tokens = self.model.generate(**request_dict).to("cpu").tolist()
             del request_dict
-            generated_text = self.tokenizer.batch_decode(gen_tokens.tolist(), skip_special_tokens=True)
+            generated_text = self.tokenizer.batch_decode(gen_tokens, skip_special_tokens=True)
+            if self.device == "cuda:0":
+                torch.cuda.empty_cache()
             return TextGenerationResult(generated_text=generated_text)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Internal Server Error : {e}")
         finally:
-            if self.device == "cuda":
-                if "inputs" in request_dict:
-                    del request_dict["inputs"]
+            if self.device == "cuda:0":
+                if "request_dict" in locals():
+                    del request_dict
                 if 'gen_tokens' in locals():
                     del gen_tokens
-                torch.cuda.empty_cache()
-            del request_dict
+            else:
+                if "request_dict" in locals():
+                    del request_dict
             gc.collect()
             logger.info("clean memory")
-
-
