@@ -1,3 +1,4 @@
+import gc
 import torch
 
 from fastapi import HTTPException
@@ -39,8 +40,21 @@ class TextGenerationModel:
         if inputs.shape[1] > self.model_max_length:
             logger.error(f"encoded sequence length is {inputs.shape[1]}")
             raise HTTPException(status_code=413, detail="`text_inputs` is too long to generate")
-        request_dict["inputs"] = inputs.to(device=self.device, non_blocking=True)
-        del request_dict["text_inputs"]
-        gen_tokens = self.model.generate(**request_dict)
-        generated_text = self.tokenizer.batch_decode(gen_tokens.tolist(), skip_special_tokens=True)
-        return TextGenerationResult(generated_text=generated_text)
+        try:
+            request_dict["inputs"] = inputs.to(device=self.device, non_blocking=True)
+            del request_dict["text_inputs"]
+            gen_tokens = self.model.generate(**request_dict)
+            del request_dict
+            generated_text = self.tokenizer.batch_decode(gen_tokens.tolist(), skip_special_tokens=True)
+            return TextGenerationResult(generated_text=generated_text)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Internal Server Error : {e}")
+        finally:
+            if "inputs" in request_dict:
+                del request_dict["inputs"]
+            if 'gen_tokens' in locals():
+                del gen_tokens
+            del request_dict
+            gc.collect()
+            torch.cuda.empty_cache()
+
