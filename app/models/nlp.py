@@ -10,11 +10,14 @@ from models.prediction import TextGenerationResult
 
 
 class TextGenerationModel:
-    def __init__(self, model_name_or_path: str, revision: str, is_fp16: bool):
-        if revision:
-            self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path, revision=revision)
-        else:
-            self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path)
+    def __init__(self, model_name_or_path: str, revision: str, is_fp16: bool, low_cpu_mem_usage: bool):
+        if not revision:
+            revision = None
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name_or_path,
+            revision=revision,
+            low_cpu_mem_usage=low_cpu_mem_usage
+        )
         if is_fp16:
             self.model = self.model.half()
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
