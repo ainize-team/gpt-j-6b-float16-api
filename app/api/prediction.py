@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.post("/text-generation", name="text-generation", response_model=TextGenerationResult,
              responses={413: {"description": "Error: Request Entity Too Large"}}, )
-def post_text_generation(
+async def post_text_generation(
         request: Request,
         block_data: TextGenerationPredictPayload
 ) -> TextGenerationResult:
