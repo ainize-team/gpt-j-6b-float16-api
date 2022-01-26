@@ -3,6 +3,7 @@ FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 ENV MODEL_NAME_OR_PATH="EleutherAI/gpt-j-6B"
 ENV IS_FP16="True"
 ENV REVISION="float16"
+ENV LOW_CPU_MEM_USAGE="True"
 
 # Install Python3
 RUN apt-get update && apt-get -y install python3 python3-dev python3-pip

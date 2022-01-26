@@ -3,22 +3,18 @@ from typing import Callable
 from fastapi import FastAPI
 from loguru import logger
 
-from core.config import MODEL_NAME_OR_PATH, TASK, IS_FP16, REVISION
+from core.config import MODEL_NAME_OR_PATH, TASK, IS_FP16, REVISION, LOW_CPU_MEM_USAGE
 from models.nlp import TextGenerationModel
 from core.commons import Tasks
 
 
 def _startup_model(app: FastAPI) -> None:
-    model_name_or_path = MODEL_NAME_OR_PATH
-    task = TASK
-    is_fp16 = IS_FP16
-    revision = REVISION
-    logger.info(f"Model Name Or Path: {model_name_or_path}")
-    logger.info(f"Revision: {revision}")
-    if task == Tasks.TEXT_GENERATION.value:
-        model_instance = TextGenerationModel(model_name_or_path, revision, is_fp16)
+    logger.info(f"Model Name Or Path: {MODEL_NAME_OR_PATH}")
+    logger.info(f"Revision: {LOW_CPU_MEM_USAGE}")
+    if TASK == Tasks.TEXT_GENERATION.value:
+        model_instance = TextGenerationModel(MODEL_NAME_OR_PATH, REVISION, IS_FP16, LOW_CPU_MEM_USAGE)
     else:
-        raise ValueError(f"{task} is not supported")
+        raise ValueError(f"{TASK} is not supported")
     app.state.model = model_instance
 
 
