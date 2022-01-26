@@ -22,7 +22,7 @@ class TextGenerationPredictPayload(BaseModel):
                                    example=1.0)
     repetition_penalty: Optional[float] = Field(None,
                                                 title="The parameter for repetition penalty. 1.0 means no penalty. See this paper for more details.",
-                                                repetition_penalty=1.0)
+                                                example=1.0)
     length_penalty: Optional[float] = Field(None,
                                             title="xponential penalty to the length. 1.0 means no penalty. Set to values < 1.0 in order to encourage the model to generate shorter sequences, to a value > 1.0 in order to encourage the model to produce longer sequences.",
                                             example=1.0)
