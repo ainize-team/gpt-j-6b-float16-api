@@ -10,7 +10,7 @@ from core.commons import Tasks
 
 def _startup_model(app: FastAPI) -> None:
     logger.info(f"Model Name Or Path: {MODEL_NAME_OR_PATH}")
-    logger.info(f"Revision: {LOW_CPU_MEM_USAGE}")
+    logger.info(f"Revision: {REVISION}")
     if TASK == Tasks.TEXT_GENERATION.value:
         model_instance = TextGenerationModel(MODEL_NAME_OR_PATH, REVISION, IS_FP16, LOW_CPU_MEM_USAGE)
     else:
