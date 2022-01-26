@@ -58,5 +58,6 @@ class TextGenerationModel:
                 torch.cuda.empty_cache()
             del request_dict
             gc.collect()
+            logger.info("clean memory")
 
 
