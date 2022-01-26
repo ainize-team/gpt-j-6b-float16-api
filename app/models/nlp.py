@@ -50,11 +50,13 @@ class TextGenerationModel:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Internal Server Error : {e}")
         finally:
-            if "inputs" in request_dict:
-                del request_dict["inputs"]
-            if 'gen_tokens' in locals():
-                del gen_tokens
+            if self.device == "cuda":
+                if "inputs" in request_dict:
+                    del request_dict["inputs"]
+                if 'gen_tokens' in locals():
+                    del gen_tokens
+                torch.cuda.empty_cache()
             del request_dict
             gc.collect()
-            torch.cuda.empty_cache()
+
 
