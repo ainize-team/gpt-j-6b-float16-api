@@ -32,6 +32,8 @@ class TextGenerationModel:
             self.model_max_length = self.model.config.max_position_embeddings
 
     def predict(self, request: TextGenerationPredictPayload) -> TextGenerationResult:
+        if self.device == "cuda:0":
+            torch.cuda.empty_cache()
         request_dict = request.dict()
         if len(request.text_inputs) > self.model_max_length * 128:
             logger.error(f"`text_inputs` length is {len(request.text_inputs)}")
@@ -47,7 +49,8 @@ class TextGenerationModel:
             if request_dict["min_length"] and request_dict["min_length"] > self.model_max_length:
                 logger.warning(f"change max_length from {request_dict['min_length']} to {self.model_max_length}")
                 request_dict["min_length"] = self.model_max_length
-            if request_dict["min_length"] and request_dict["max_length"] and request_dict["min_length"] > request_dict["max_length"]:
+            if request_dict["min_length"] and request_dict["max_length"] and request_dict["min_length"] > request_dict[
+                "max_length"]:
                 logger.warning(f"change min_length from {request_dict['min_length']} to {request_dict['max_length']}")
                 request_dict["min_length"] = request_dict['max_length']
             request_dict["inputs"] = inputs.to(device=self.device, non_blocking=True)
@@ -55,8 +58,7 @@ class TextGenerationModel:
             gen_tokens = self.model.generate(**request_dict).to("cpu").tolist()
             del request_dict
             generated_text = self.tokenizer.batch_decode(gen_tokens, skip_special_tokens=True)
-            if self.device == "cuda:0":
-                torch.cuda.empty_cache()
+
             return TextGenerationResult(generated_text=generated_text)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Internal Server Error : {e}")
